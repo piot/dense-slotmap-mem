@@ -45,7 +45,6 @@
 //! - Sentinel value for invalid entries: `0xFFFF`
 
 #![no_std]
-
 // Since we are doing low level memory manipulation with raw pointers
 // we have to turn off these warnings
 #![allow(clippy::cast_ptr_alignment)]
@@ -89,7 +88,10 @@ pub fn debug_validate_slotmap(base: *const u8) {
             len <= capacity,
             "len ({len}) must not exceed capacity ({capacity}) - memory corruption or uninitialized slot map"
         );
-        debug_assert_ne!(elem_size, 0, "element_size must not be 0 (did you call init()?)");
+        debug_assert_ne!(
+            elem_size, 0,
+            "element_size must not be 0 (did you call init()?)"
+        );
         debug_assert!(
             elem_size <= 1024 * 1024,
             "element_size ({elem_size}) is unreasonably large - possible memory corruption"
@@ -101,16 +103,14 @@ pub fn debug_validate_slotmap(base: *const u8) {
         let trailer_elem_size = *base.add(trailer_off + 4).cast::<u32>();
 
         debug_assert_eq!(
-            trailer_magic,
-            SVEC_TRAILER_MAGIC,
+            trailer_magic, SVEC_TRAILER_MAGIC,
             "Invalid trailer magic at offset {trailer_off}: expected 0x{SVEC_TRAILER_MAGIC:08X}, got 0x{trailer_magic:08X}\n\
              Slot map state: capacity={capacity}, len={len}, elem_size={elem_size}\n\
              This likely means the slot map was not properly initialized with init(), \
              or the memory has been corrupted, or you're using the wrong base pointer"
         );
         debug_assert_eq!(
-            trailer_elem_size,
-            elem_size,
+            trailer_elem_size, elem_size,
             "element_size mismatch: header has {elem_size}, trailer has {trailer_elem_size} - memory corruption detected"
         );
 
@@ -405,8 +405,9 @@ pub unsafe fn insert(base: *mut u8, id: u16, generation: u16, src: *const u8) ->
         let element_size = element_size(base);
 
         // Validate handle and get dense index
-        let Some(index) = validate_handle(base, id, generation) else { return false };
-
+        let Some(index) = validate_handle(base, id, generation) else {
+            return false;
+        };
 
         // Write to values[index]
         let offset = VALUES_OFFSET + (index as usize) * (element_size as usize);
@@ -426,15 +427,15 @@ pub unsafe fn remove(base: *mut u8, id: u16, generation: u16) -> bool {
         let element_size_val = element_size(base);
 
         // Validate handle and get dense index
-        let Some(index) = validate_handle(base, id, generation) else { return false };
-
+        let Some(index) = validate_handle(base, id, generation) else {
+            return false;
+        };
 
         let len_ptr = base.add(2).cast::<u16>();
         let len = *len_ptr;
         let last = len - 1;
 
         //eprintln!("slotmap:{base:p} remove id:{id} (index:{index}) gen:{generation}");
-
 
         // If not removing the last element, swap with last
         if index != last {
@@ -498,7 +499,6 @@ pub unsafe fn is_alive(base: *mut u8, id: u16, generation: u16) -> bool {
     }
 }
 
-
 /// Get a pointer to the generation array
 /// # Safety
 /// IMPORTANT: The returned array is indexed by ID, not by dense index.
@@ -546,7 +546,6 @@ pub unsafe fn get_generation_for_index(base: *mut u8, index: u16) -> Option<u16>
         Some(*gen_ptr.add(id as usize))
     }
 }
-
 
 /// Get a pointer to the `index_to_id` array (for compatibility/debugging)
 /// # Safety

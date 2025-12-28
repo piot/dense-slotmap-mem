@@ -66,9 +66,16 @@ fn test_allocate_remove_generation_tracking() {
         // Reallocate same ID with incremented generation
         let (new_id, new_generation) = allocate(base).expect("should reallocate");
         assert_eq!(new_id, id, "Should reuse same ID");
-        assert_eq!(new_generation, generation + 1, "Generation should increment");
+        assert_eq!(
+            new_generation,
+            generation + 1,
+            "Generation should increment"
+        );
         assert!(is_alive(base, new_id, new_generation));
-        assert!(!is_alive(base, id, generation), "Old generation should be invalid");
+        assert!(
+            !is_alive(base, id, generation),
+            "Old generation should be invalid"
+        );
     }
 }
 
@@ -104,7 +111,10 @@ fn test_dense_storage_and_values() {
         assert_eq!(element_count(base), 2);
 
         let swapped = *(base.add(values_off + element_size as usize) as *const u32);
-        assert_eq!(swapped, 300u32, "Last element should swap into removed slot");
+        assert_eq!(
+            swapped, 300u32,
+            "Last element should swap into removed slot"
+        );
     }
 }
 
@@ -174,8 +184,10 @@ fn test_invalid_operations() {
         assert!(remove(base, id, generation));
         assert!(!is_alive(base, id, generation));
         assert!(!remove(base, id, generation), "Double remove should fail");
-        assert!(!insert(base, id, generation, (&raw const value).cast::<u8>()),
-                "Insert to removed slot should fail");
+        assert!(
+            !insert(base, id, generation, (&raw const value).cast::<u8>()),
+            "Insert to removed slot should fail"
+        );
 
         // Reallocate and verify old generation still invalid
         let (new_id, new_generation) = allocate(base).unwrap();
