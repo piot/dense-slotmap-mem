@@ -1,0 +1,11 @@
+[package]
+name = "dense-slotmap-mem"
+version = "0.1.0"
+edition = "2024"
+description = "Fixed-capacity, generation-tracked dense slot map with stable handles and raw memory interface, optimized for the Swamp VM"
+license = "MIT"
+repository = "https://github.com/piot/dense-slotmap-mem"
+keywords = ["slotmap", "data-structure", "memory", "swamp-vm", "no-std"]
+categories = ["data-structures", "memory-management", "no-std"]
+
+[dependencies]
