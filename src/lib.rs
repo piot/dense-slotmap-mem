@@ -303,8 +303,12 @@ pub unsafe fn clear(base: *mut u8) {
             ptr::write(free_stk_ptr.add(i), i as u16);
         }
 
-        // Note: We keep generations as-is, which means old handles remain invalid
-        // If you want to allow old handles to work after clear, increment all generations here
+        // Increment all generations to invalidate old handles
+        let gen_ptr = generation_ptr(base, capacity, element_size);
+        for i in 0..capacity as usize {
+            let old_gen = *gen_ptr.add(i);
+            ptr::write(gen_ptr.add(i), old_gen.wrapping_add(1));
+        }
     }
 }
 
@@ -489,13 +493,29 @@ pub unsafe fn remove(base: *mut u8, id: u16, generation: u16) -> bool {
     }
 }
 
-/// Check handle validity
-/// # Safety
+/// Check if a handle is alive by comparing generations.
+/// Returns true if the stored generation for the given ID matches the provided generation.
 ///
+/// # Safety
+/// - `base` must point to a valid initialized slot map
+/// - `id` must be less than capacity
 pub unsafe fn is_alive(base: *mut u8, id: u16, generation: u16) -> bool {
     unsafe {
         debug_validate_slotmap(base);
-        validate_handle(base, id, generation).is_some()
+
+        let capacity = *base.cast::<u16>();
+        let element_size = element_size(base);
+
+        debug_assert!(
+            id < capacity,
+            "id ({id}) must be less than capacity ({capacity})"
+        );
+
+        // Compare the stored generation with the provided generation
+        let gen_ptr = generation_ptr(base, capacity, element_size);
+        let stored_generation = *gen_ptr.add(id as usize);
+
+        stored_generation == generation
     }
 }
 

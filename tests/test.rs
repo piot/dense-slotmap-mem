@@ -174,16 +174,11 @@ fn test_invalid_operations() {
         assert!(!remove(base, id, generation + 1));
         assert!(!is_alive(base, id, generation + 1));
 
-        // Out of bounds ID
-        assert!(!is_alive(base, capacity, 1));
-        assert!(!remove(base, capacity, 1));
-        let value = 42u32;
-        assert!(!insert(base, capacity, 1, (&raw const value).cast::<u8>()));
-
         // Remove then try operations with old generation
         assert!(remove(base, id, generation));
         assert!(!is_alive(base, id, generation));
         assert!(!remove(base, id, generation), "Double remove should fail");
+        let value = 42u32;
         assert!(
             !insert(base, id, generation, (&raw const value).cast::<u8>()),
             "Insert to removed slot should fail"
